@@ -8,4 +8,4 @@ OBJS = ftp.o main.o
 all: ${OBJS}
 	${CXX} -o port-monkey ${LDFLAGS} $^
 clean:
-	rm -rf *.o port-monkey test
+	rm -rf *.o port-monkey test .*.sw*
