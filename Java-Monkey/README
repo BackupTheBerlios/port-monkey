@@ -1,0 +1,18 @@
+.oO JAVA-MONKEY Oo.
+
+Java-Monkey needs FtpBean.
+You need to download the latest version from http://www.geocities.com/SiliconValley/Code/9129/javabean/ftpbean/ and put it into <Your Java-Dir>/jre/lib/ext
+
+To compile type this:
+  javac FtpClass.java
+  javac Main.java
+
+To run this:
+  java Main <IP-Range>
+
+An IP-Range is something like this: 192.168.0.*
+
+If you like this program, send me an Pub-IP (E-Mail see below).
+
+Have fun,
+Giuly <giuly AT giuly DOTde>
