@@ -27,4 +27,4 @@ OBJS = ftp.o main.o
 all: ${OBJS}
 	${CXX} -o pub-monkey ${LDFLAGS} $^
 clean:
-	rm -rf *.o port-monkey test .*.sw* pubs
+	rm -rf *.o pub-monkey test .*.sw* pubs

@@ -47,7 +47,7 @@ int main(int argc, const char* argv[])
 				    
   
   vector<string> hosts;
-  cout << "Pub-Monkey 0.00 Pre-Alpha started" << endl;
+  cout << "Pub-Monkey 0.00 Beta started" << endl;
   
   string host;
   
