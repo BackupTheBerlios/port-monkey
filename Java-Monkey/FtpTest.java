@@ -26,6 +26,7 @@ import java.net.*;
 
 class FtpTest
 {
+  String speedtestfile = new String("COPYING");
   FtpBean ftp;
   String fhost;
   FileOutputStream lfp;
@@ -126,6 +127,7 @@ class FtpTest
     {
       writeLog((String)it.next() + " ");
     }
+    
     close();
     writeLog("\n");
   }

@@ -1,20 +1,20 @@
 /*
   Copyright (C) 2004 Giuliano Montecarlo
 
-  This file is part of Pub-Monkey
+  This file is part of Java-Monkey
 
-  Pub-Monkey is free software, you can redistribute it and/or
+  Java-Monkey is free software, you can redistribute it and/or
   modify it under the terms of the Affero General Public License as
   published by Affero, Inc., either version 1 of the License, or
   (at your option) any later version.
 
-  Pub-Monkey is distributed in the hope that it will be
+  Java-Monkey is distributed in the hope that it will be
   useful, but WITHOUT ANY WARRANTY, without even the implied warranty
   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   Affero General Public License for more details.
 
   You should have received a copy of the Affero General Public
-  License in the COPYING file that comes with Pub-Monkey. If
+  License in the COPYING file that comes with Java-Monkey. If
   not, write to Affero, Inc., 510 Third Street, Suite 225, San
   Francisco, CA 94107 USA.
 */
@@ -28,9 +28,20 @@ class Main
 
   public static void main(String[] argv)
   {
+    int lognr = 0;
+    String logname = new String();
+    File thelog = null;
+    boolean gotlog = true;
+    while(gotlog == true)
+    {
+      thelog = new File("pubs" + Integer.toString(lognr));
+      gotlog = thelog.exists();
+      logname = "pubs" + Integer.toString(lognr);
+      lognr++;
+    }
+    
     try {
       System.out.print("Opening Logfile...");
-      String logname = new String("pubs");
       lofp = new FileOutputStream(logname);
     } catch(Exception e) {
       System.out.println("ERROR");
@@ -99,6 +110,8 @@ class Main
         testIt(host);
       }
     }
+  if(thelog.length() == 0) thelog.delete();
+  
   }
   
   static public void testIt(String host)
