@@ -1,0 +1,6 @@
+220 -> FTP exists
+530 -> Login incorrect
+230 -> You logged in
+331 -> Password required
+226 -> Transfer complete (You have access)
+550 ­> Permission denied (You haven't access)
