@@ -1,20 +1,20 @@
 /*
   Copyright (C) 2004 Giuliano Montecarlo
 
-  This file is part of Pub-Monkey
+  This file is part of Java-Monkey
 
-  Pub-Monkey is free software, you can redistribute it and/or
+  Java-Monkey is free software, you can redistribute it and/or
   modify it under the terms of the Affero General Public License as
   published by Affero, Inc., either version 1 of the License, or
   (at your option) any later version.
 
-  Pub-Monkey is distributed in the hope that it will be
+  Java-Monkey is distributed in the hope that it will be
   useful, but WITHOUT ANY WARRANTY, without even the implied warranty
   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   Affero General Public License for more details.
     
   You should have received a copy of the Affero General Public
-  License in the COPYING file that comes with Pub-Monkey. If
+  License in the COPYING file that comes with Java-Monkey. If
   not, write to Affero, Inc., 510 Third Street, Suite 225, San
   Francisco, CA 94107 USA.
 */
@@ -22,6 +22,7 @@
 import ftp.*;
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
 class FtpTest
 {
@@ -39,8 +40,8 @@ class FtpTest
   public boolean connect()
   {
     try {
-      ftp.ftpConnect(fhost, "anonymous", "pub-monkey@monkey-pub.org");
-    } catch(Exception e) {
+      ftp.setSocketTimeout(1000);
+    } catch(SocketException se) {
       return false;
     }
     return true;
@@ -69,43 +70,63 @@ class FtpTest
   
   public HashSet listDirectory()
   {
-    HashSet set = new HashSet();
+    HashSet toret = new HashSet();
     FtpListResult ftplrs = null;
     try {
       ftp.setDirectory("/");
       ftplrs = ftp.getDirectoryContent();
     } catch(Exception e) {
       System.out.println(e);
+      return null;
     }
 
+    boolean haswdirs = false;
     while(ftplrs.next())
     {
       int type = ftplrs.getType();
       if(type == FtpListResult.DIRECTORY)
       {
-        System.out.println(ftplrs.getName());
-	System.out.println(" ");
 	if (ftplrs.isGlobalWritable()) 
 	{
-	  set.add(ftplrs.getName());
-	  System.out.println("is writable");
+	  toret.add(ftplrs.getName());
+	  System.out.println(ftplrs.getName() + " is writable");
+	  haswdirs = true;
 	} else {
-	  System.out.println("is not writable");
+	  System.out.println(ftplrs.getName() + " is not writable");
         }
       } 
     
     }
-    return set;
+    if(haswdirs == false) return null;
+    return toret;
   }
   public void work()
   {
-    if(connect() == false) return;
+    System.out.print("Connection to " + fhost + "...");
+    if(connect() == false)
+    {
+      System.out.println("ERROR");
+      return;
+    }
+    System.out.println("OK");
+    System.out.print("Logging in as anonymous...");
+    try {
+      ftp.ftpConnect(fhost, "anonymous", "pub-monkey@monkey-pub.org");
+    } catch(Exception e) {
+      System.out.println("ERROR");
+      return;
+    }
+    
+    System.out.println("OK");
     HashSet wdirs = listDirectory();
+    if(wdirs == null) return;
     Iterator it = wdirs.iterator();
+    writeLog("Writable Directories on " + fhost + ": ");
     while(it.hasNext())
     {
-      writeLog((String)it.next());
-      close();
+      writeLog((String)it.next() + " ");
     }
+    close();
+    writeLog("\n");
   }
 }
