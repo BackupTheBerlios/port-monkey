@@ -1,4 +1,27 @@
+/*
+  Copyright (C) 2004 Giuliano Montecarlo
+
+  This file is part of Pub-Monkey
+
+  Pub-Monkey is free software, you can redistribute it and/or
+  modify it under the terms of the Affero General Public License as
+  published by Affero, Inc., either version 1 of the License, or
+  (at your option) any later version.
+
+  Pub-Monkey is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY, without even the implied warranty
+  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  Affero General Public License for more details.
+
+  You should have received a copy of the Affero General Public
+  License in the COPYING file that comes with YaCE3. If
+  not, write to Affero, Inc., 510 Third Street, Suite 225, San
+  Francisco, CA 94107 USA.
+*/
+
 #include "ftp.h"
+#include <cc++/ftp.h>
+#include <vector>
 
 ftpTest::ftpTest(const string& host, ofstream* ofstr)
 {
@@ -8,20 +31,23 @@ ftpTest::ftpTest(const string& host, ofstream* ofstr)
 
 bool ftpTest::connect()
 {
-  cout << "Connecting to " << fhost << endl;
+  cout << "Connecting to " << fhost << "...";
   try {
-    connection = new TCPStream(InetHostAddress(fhost.c_str()), 21);
+    connection = new FTPSocket(InetHostAddress(fhost.c_str()));
   } catch(...) {
     cout << "Could not connect!" << endl;
     return false;
   }
-  if(!connection->isConnected())
-  {
-    cout << "Could not connect!" << endl;
-    return false;
+  cout << "connected" << endl;
+  try {
+	  cout << "Loging in...";
+	  connection->login("anonymous", "monkey@monkey.com");
+  } catch(...) {
+	  cout << "Could not login as anonymous" << endl;
+	  return false;
   }
 
-  cout << "Connected successfully!" << endl;
+  cout << "logged in" << endl;
   connected = true;
   return true;
 }
@@ -32,94 +58,37 @@ void ftpTest::work()
   {
     return;
   }
-  int result = login();
-  if(result == 1 || result == 2) 
-  {
-    delete connection;
-    delete this;
-    return;
-  }
+  	vector<string> wdirs;
+	connection->cwd("/");
+	FTPSocket::DirType d = connection->getDir(connection->pwd());
+	bool hasWritableDirs = false;
+    for(FTPSocket::DirType::iterator i = d.begin(); i != d.end(); ++i)
+	{
+		// cout << (*i).getLine() << endl;
+		if((*i).canOtherWrite() && (*i).isDir())
+		{
+			wdirs.push_back((*i).getName());
+			hasWritableDirs = true;
+			cout << "Access on " << (*i).getName() << endl;
+		} else if((*i).isDir() && !(*i).canOtherWrite())cout << "No access on " << (*i).getName() << endl;
+	}
+	
+	if(hasWritableDirs)
+	{
+		this->logwrite("Writable Directories on " + fhost + ": ");
+		vector<string>::iterator it;
+		for(it=wdirs.begin(); it != wdirs.end(); ++it) this->logwrite((*it) + " ");
+		this->logwrite("", true);
+	}
+	
+	connection->quit();
 
-  // cout << endl << endl;
-  // cout << "TODO:" << endl;
-  //  cout << "Check writability" << endl << "write out to a log-file" << endl;
-  return;
 }
 
-bool ftpTest::isWritable()
-{
-  return writable;
-}
-
-void ftpTest::send(const string& tosend)
-{
-  consend.enterMutex();
-  cout << "Port-Monkey: " << tosend << endl;
-  (*connection) << tosend << endl;
-  consend.leaveMutex();
-  return;
-}
-
-string ftpTest::writable_dir()
-{
-  return wdir;
-}
-
-int ftpTest::login()
-{ 
-  string ffd;
-    
-  getline(*connection, ffd);
-   if(ffd == "")
-   {
-     cout << "No Here is no FTP-Server." << endl;
-     return 1;
-   }
-
-   if(ffd.substr(0, 3) == "220")
-   {
-     cout << "Found a FTP-Server." << endl;
-   } else {
-     cout << "Here in no FTP-Server." << endl;
-     return 1;
-   }
-   
-  this->send("USER anonymous");
-  getline(*connection, ffd);
-  if(ffd.substr(0, 3) != "331" && ffd.substr(0, 3) != "230")
-  {
-    cout << "anonymous-access not allowed (1)" << endl;
-    this->send("QUIT");
-    return 2;
-  }
-  if(ffd.substr(0, 3) == "230")
-  {
-    goto right;
-  }
-  
-  this->send("PASS port-monkey@monkey-port.org");
-  getline(*connection, ffd);
-  if(ffd.substr(0, 3) == "530")
-  {
-    cout << "anonymous-access not allowed (2)" << endl;
-    this->send("QUIT");
-    return 2;
-  }
-  
-right:
-  if(ffd.substr(0, 3) == "230") {
-    cout << "Logged in as anonymous, maybe a pub :)" << endl;
-    this->logwrite("Found a public FTP-Server at " + fhost);
-    
-    this->send("QUIT"); // ATM
-    return 0;
-  } 
-}
-
-void ftpTest::logwrite(const string& add)
+void ftpTest::logwrite(const string& add, bool nl)
 {
   logger.enterMutex();
-  (*logfilep) << add << endl;
+  (*logfilep) << add;
+  if(nl) (*logfilep) << endl;
   logger.leaveMutex();
 }
-
